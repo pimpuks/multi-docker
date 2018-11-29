@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t pimpuks/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run pimpuks/react-test npm run test -- --coverage
+
+after_success:
+  - docker build -t pimpuks/multi-client ./client
+  - docker build -t pimpuks/multi-nginx ./nginx
+  - docker build -t pimpuks/multi-server ./server
+  - docker build -t pimpuks/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push pimpuks/multi-client
+  - docker push pimpuks/multi-nginx
+  - docker push pimpuks/multi-server
+  - docker push pimpuks/multi-worker
